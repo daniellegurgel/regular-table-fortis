@@ -20,6 +20,8 @@ export const BROWSER_MAX_HEIGHT = isFirefox ? 5000000 : 10000000;
 // [regular-table-fortis] Neurotrading (Danielle Gurgel), 2026-10-28.
 // Opt-in attribute: with it, horizontal scrolling goes on until the last
 // column alone sits next to the row headers, instead of stopping when the
-// last column reaches the right edge. Set it on the `<regular-table>` and
-// redraw.
+// last column reaches the right edge; and (2026-10-29) vertical scrolling
+// goes on until the last row alone sits under the column headers, instead of
+// stopping when the last row reaches the bottom edge. Set it on the
+// `<regular-table>` and redraw.
 export const SCROLL_PAST_END_ATTRIBUTE = "scroll-past-end";

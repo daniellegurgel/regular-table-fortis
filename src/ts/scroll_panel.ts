@@ -747,9 +747,35 @@ export class RegularVirtualTableViewModel extends HTMLElement {
      */
     protected _virtual_panel_height(nrows: number): number {
         const { row_height = 0 } = this._column_sizes;
+
+        // [regular-table-fortis] With `scroll-past-end`, vertical scrolling
+        // goes on until the last row alone sits under the column headers:
+        // one row step per row but the last, so the panel is that much plus
+        // the viewport. This also stops the bottom of the last row from
+        // hiding behind the horizontal scrollbar when the column headers are
+        // styled taller than a row (the estimate below takes each header row
+        // as `row_height`).
+        const container_height = this._container_size?.containerHeight;
+        if (
+            this._scrolls_past_end() &&
+            container_height !== undefined &&
+            Number.isFinite(container_height)
+        ) {
+            return Math.min(
+                BROWSER_MAX_HEIGHT,
+                Math.max(0, nrows - 1) * row_height + container_height,
+            );
+        }
+
         const header_height =
             this._view_cache.column_headers_length * row_height;
         return Math.min(BROWSER_MAX_HEIGHT, nrows * row_height + header_height);
+    }
+
+    // [regular-table-fortis] Whether the opt-in `scroll-past-end` attribute is
+    // set: both axes then scroll until the last column (row) alone is shown.
+    private _scrolls_past_end(): boolean {
+        return this.hasAttribute(SCROLL_PAST_END_ATTRIBUTE);
     }
 
     /**
@@ -863,10 +889,11 @@ export class RegularVirtualTableViewModel extends HTMLElement {
 
         const clip_panel_row_height = height / row_height - header_levels;
         const relative_nrows = nrows || 0;
-        const scrollable_rows = Math.max(
-            0,
-            relative_nrows - clip_panel_row_height,
-        );
+        // [regular-table-fortis] With `scroll-past-end`, every row but the
+        // last can scroll out of view (see `_virtual_panel_height`).
+        const scrollable_rows = this._scrolls_past_end()
+            ? Math.max(0, relative_nrows - 1)
+            : Math.max(0, relative_nrows - clip_panel_row_height);
         const start_row = scrollable_rows * percent_scroll;
         const end_row = Math.max(
             0,
@@ -922,7 +949,7 @@ export class RegularVirtualTableViewModel extends HTMLElement {
         // [regular-table-fortis] With `scroll-past-end`, the last column may
         // be the first one shown: the scroll goes on until it alone sits next
         // to the row headers, the rest of the viewport left empty.
-        if (this.hasAttribute(SCROLL_PAST_END_ATTRIBUTE)) {
+        if (this._scrolls_past_end()) {
             return Math.max(0, num_columns - 1);
         }
 
