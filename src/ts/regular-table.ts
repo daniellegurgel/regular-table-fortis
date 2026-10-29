@@ -23,6 +23,7 @@ import { METADATA_MAP } from "./view_model";
 export type VirtualMode = "both" | "horizontal" | "vertical" | "none";
 
 export type { PredrawCommit, PredrawOptions } from "./types";
+export { SCROLL_PAST_END_ATTRIBUTE } from "./constants"; // [regular-table-fortis]
 
 const VIRTUAL_MODES: VirtualMode[] = ["both", "horizontal", "vertical", "none"];
 

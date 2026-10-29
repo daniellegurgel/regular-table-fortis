@@ -10,7 +10,11 @@
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 import { log_perf, throttle_tag, flush_tag } from "./utils";
-import { DEBUG, BROWSER_MAX_HEIGHT } from "./constants";
+import {
+    DEBUG,
+    BROWSER_MAX_HEIGHT,
+    SCROLL_PAST_END_ATTRIBUTE, // [regular-table-fortis]
+} from "./constants";
 import type { RegularTableViewModel } from "./table";
 import { RegularTableElement } from "./regular-table";
 import {
@@ -915,6 +919,13 @@ export class RegularVirtualTableViewModel extends HTMLElement {
      * @returns
      */
     private _max_scroll_column(num_columns: number): number {
+        // [regular-table-fortis] With `scroll-past-end`, the last column may
+        // be the first one shown: the scroll goes on until it alone sits next
+        // to the row headers, the rest of the viewport left empty.
+        if (this.hasAttribute(SCROLL_PAST_END_ATTRIBUTE)) {
+            return Math.max(0, num_columns - 1);
+        }
+
         let width = 0;
         if (this._view_cache.row_headers_length > 0) {
             for (const w of this._column_sizes.indices.slice(
